@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: refactor-aop-testing
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
