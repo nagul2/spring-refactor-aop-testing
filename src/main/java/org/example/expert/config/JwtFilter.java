@@ -1,5 +1,8 @@
 package org.example.expert.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -10,11 +13,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.expert.domain.common.dto.ErrorDto;
 import org.example.expert.domain.user.enums.UserRole;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,6 +47,7 @@ public class JwtFilter implements Filter {
 
         if (url.startsWith("/auth")) {
             chain.doFilter(wrapperRequest, wrapperResponse);
+            wrapperResponse.copyBodyToResponse();
             return;
         }
 
@@ -48,7 +55,7 @@ public class JwtFilter implements Filter {
 
         if (bearerJwt == null) {
             // 토큰이 없는 경우 400을 반환합니다.
-            wrapperResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "JWT 토큰이 필요합니다.");
+            filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, "JWT 토큰이 필요합니다.");
             return;
         }
 
@@ -58,7 +65,7 @@ public class JwtFilter implements Filter {
             // JWT 유효성 검사와 claims 추출
             Claims claims = jwtUtil.extractClaims(jwt);
             if (claims == null) {
-                wrapperResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 JWT 토큰입니다.");
+                filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, "잘못된 JWT 토큰입니다.");
                 return;
             }
 
@@ -71,32 +78,58 @@ public class JwtFilter implements Filter {
             if (url.startsWith("/admin")) {
                 // 관리자 권한이 없는 경우 403을 반환합니다.
                 if (!UserRole.ADMIN.equals(userRole)) {
-                    wrapperResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
+                    filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_FORBIDDEN, HttpStatus.FORBIDDEN, "관리자 권한이 없습니다.");
                     return;
                 }
                 chain.doFilter(wrapperRequest, wrapperResponse);
-                wrapperResponse.copyBodyToResponse();
                 return;
             }
 
             chain.doFilter(wrapperRequest, wrapperResponse);
+
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.", e);
-            wrapperResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않는 JWT 서명입니다.");
+            filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_UNAUTHORIZED, HttpStatus.UNAUTHORIZED, "유효하지 않는 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT token, 만료된 JWT token 입니다.", e);
-            wrapperResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "만료된 JWT 토큰입니다.");
+            filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_UNAUTHORIZED, HttpStatus.UNAUTHORIZED, "만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
             log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.", e);
-            wrapperResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "지원되지 않는 JWT 토큰입니다.");
+            filterErrorResponse(wrapperRequest, wrapperResponse,HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, "지원되지 않는 JWT 토큰입니다.");
         } catch (Exception e) {
             log.error("Invalid JWT token, 유효하지 않는 JWT 토큰 입니다.", e);
-            wrapperResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "유효하지 않는 JWT 토큰입니다.");
+            filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, "유효하지 않는 JWT 토큰입니다.");
+        } finally {
+            wrapperResponse.copyBodyToResponse();
         }
     }
 
     @Override
     public void destroy() {
         Filter.super.destroy();
+    }
+
+    private void filterErrorResponse(ContentCachingRequestWrapper requestWrapper,
+                                     ContentCachingResponseWrapper responseWrapper,
+                                     int code,
+                                     HttpStatus status,
+                                     String message) throws IOException {
+
+        responseWrapper.setStatus(code);
+        responseWrapper.setContentType("application/json");
+        responseWrapper.setCharacterEncoding("UTF-8");
+
+        String errorJson = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .writeValueAsString(new ErrorDto(
+                        code,
+                        status,
+                        message,
+                        LocalDateTime.now(),
+                        requestWrapper.getRequestURL().toString()));
+
+        responseWrapper.getWriter().write(errorJson);
+        responseWrapper.copyBodyToResponse();
     }
 }
