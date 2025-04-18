@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.example.expert.domain.common.exception.ErrorMessage.TODO_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -29,7 +31,7 @@ public class CommentService {
     public CommentSaveResponse saveComment(AuthUser authUser, long todoId, CommentSaveRequest commentSaveRequest) {
         User user = User.fromAuthUser(authUser);
         Todo todo = todoRepository.findById(todoId).orElseThrow(() ->
-                new InvalidRequestException("Todo not found"));
+                new InvalidRequestException(TODO_NOT_FOUND.getMessage()));
 
         Comment newComment = new Comment(
                 commentSaveRequest.getContents(),

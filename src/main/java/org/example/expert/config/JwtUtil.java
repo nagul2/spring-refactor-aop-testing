@@ -16,6 +16,8 @@ import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
 
+import static org.example.expert.domain.common.exception.ErrorMessage.JWT_NOT_FOUND_TOKEN;
+
 @Slf4j(topic = "JwtUtil")
 @Component
 public class JwtUtil {
@@ -52,7 +54,7 @@ public class JwtUtil {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
             return tokenValue.substring(7);
         }
-        throw new ServerException("Not Found Token");
+        throw new ServerException(JWT_NOT_FOUND_TOKEN.getMessage());
     }
 
     public Claims extractClaims(String token) {

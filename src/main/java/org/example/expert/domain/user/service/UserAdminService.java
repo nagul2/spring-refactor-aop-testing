@@ -9,6 +9,8 @@ import org.example.expert.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.example.expert.domain.common.exception.ErrorMessage.USER_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class UserAdminService {
@@ -17,7 +19,7 @@ public class UserAdminService {
 
     @Transactional
     public void changeUserRole(long userId, UserRoleChangeRequest userRoleChangeRequest) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new InvalidRequestException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new InvalidRequestException(USER_NOT_FOUND.getMessage()));
         user.updateRole(UserRole.of(userRoleChangeRequest.getRole()));
     }
 }
