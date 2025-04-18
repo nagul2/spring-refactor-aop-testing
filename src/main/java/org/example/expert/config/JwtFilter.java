@@ -88,7 +88,7 @@ public class JwtFilter implements Filter {
             }
 
 
-        chain.doFilter(wrapperRequest, wrapperResponse);
+            chain.doFilter(wrapperRequest, wrapperResponse);
 
 
         } catch (SecurityException | MalformedJwtException e) {
@@ -99,11 +99,10 @@ public class JwtFilter implements Filter {
             filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_UNAUTHORIZED, HttpStatus.UNAUTHORIZED, JWT_EXPIRED.getMessage());
         } catch (UnsupportedJwtException e) {
             log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.", e);
-            filterErrorResponse(wrapperRequest, wrapperResponse,HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, JWT_UNSUPPORTED.getMessage());
-        }  catch (Exception e) {
+            filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, JWT_UNSUPPORTED.getMessage());
+        } catch (Exception e) {
             log.error("Invalid JWT token, 유효하지 않는 JWT 토큰 입니다.", e);
             filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, JWT_INVALID.getMessage());
-
         } finally {
             wrapperResponse.copyBodyToResponse();
         }
