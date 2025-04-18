@@ -60,7 +60,6 @@ public class JwtFilter implements Filter {
             filterErrorResponse(wrapperRequest, wrapperResponse, HttpServletResponse.SC_BAD_REQUEST, HttpStatus.BAD_REQUEST, JWT_REQUIRED.getMessage());
             return;
         }
-
         String jwt = jwtUtil.substringToken(bearerJwt);
 
         try {

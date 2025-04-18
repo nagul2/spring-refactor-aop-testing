@@ -49,7 +49,7 @@ class CommentServiceTest {
         });
 
         // then
-        assertEquals("Todo not found", exception.getMessage());
+        assertEquals("해당 Todo가 존재하지 않습니다.", exception.getMessage());
     }
 
     @Test
