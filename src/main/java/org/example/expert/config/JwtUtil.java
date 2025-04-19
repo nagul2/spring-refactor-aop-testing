@@ -16,6 +16,8 @@ import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
 
+import static org.example.expert.config.JwtConst.EMAIL;
+import static org.example.expert.config.JwtConst.USER_ROLE;
 import static org.example.expert.domain.common.exception.ErrorMessage.JWT_NOT_FOUND_TOKEN;
 
 @Slf4j(topic = "JwtUtil")
@@ -42,8 +44,8 @@ public class JwtUtil {
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setSubject(String.valueOf(userId))
-                        .claim("email", email)
-                        .claim("userRole", userRole)
+                        .claim(EMAIL, email)
+                        .claim(USER_ROLE, userRole)
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME))
                         .setIssuedAt(date) // 발급일
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘

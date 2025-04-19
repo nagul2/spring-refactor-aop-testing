@@ -22,7 +22,9 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+import static org.example.expert.config.JwtConst.*;
 import static org.example.expert.domain.common.exception.ErrorMessage.*;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -53,7 +55,7 @@ public class JwtFilter implements Filter {
             return;
         }
 
-        String bearerJwt = wrapperRequest.getHeader("Authorization");
+        String bearerJwt = wrapperRequest.getHeader(AUTHORIZATION);
 
         if (bearerJwt == null) {
             // 토큰이 없는 경우 400을 반환합니다.
@@ -70,11 +72,11 @@ public class JwtFilter implements Filter {
                 return;
             }
 
-            UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
+            UserRole userRole = UserRole.valueOf(claims.get(USER_ROLE, String.class));
 
-            wrapperRequest.setAttribute("userId", Long.parseLong(claims.getSubject()));
-            wrapperRequest.setAttribute("email", claims.get("email"));
-            wrapperRequest.setAttribute("userRole", claims.get("userRole"));
+            wrapperRequest.setAttribute(USER_ID, Long.parseLong(claims.getSubject()));
+            wrapperRequest.setAttribute(EMAIL, claims.get(EMAIL));
+            wrapperRequest.setAttribute(USER_ROLE, claims.get(USER_ROLE));
 
             if (url.startsWith("/admin")) {
                 // 관리자 권한이 없는 경우 403을 반환합니다.

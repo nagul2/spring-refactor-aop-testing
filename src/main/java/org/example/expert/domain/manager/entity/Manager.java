@@ -1,6 +1,8 @@
 package org.example.expert.domain.manager.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.expert.domain.todo.entity.Todo;
@@ -8,7 +10,9 @@ import org.example.expert.domain.user.entity.User;
 
 @Getter
 @Entity
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "managers")
 public class Manager {
 
