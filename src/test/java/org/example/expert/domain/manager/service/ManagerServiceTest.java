@@ -31,10 +31,13 @@ class ManagerServiceTest {
 
     @Mock
     private ManagerRepository managerRepository;
+
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private TodoRepository todoRepository;
+
     @InjectMocks
     private ManagerService managerService;
 
