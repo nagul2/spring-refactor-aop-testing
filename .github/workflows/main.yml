@@ -17,8 +17,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            mkdir -p /app
-            cd /app
+            mkdir -p ~/app
+            cd ~/app
 
             if [ ! -d ".git" ]; then
               git clone https://github.com/${{ github.repository }} .
@@ -31,7 +31,7 @@ jobs:
             echo "DB_PW=${{ secrets.DB_PW }}" >> .env.dev
             echo "JWT_SECRETKEY=${{ secrets.JWT_SECRETKEY }}" >> .env.dev
 
-            # Java 설치 (필요 시)
+            # Java 설치
             if ! type java > /dev/null 2>&1; then
               sudo apt update
               sudo apt install -y openjdk-17-jdk
