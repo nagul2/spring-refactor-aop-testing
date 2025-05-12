@@ -10,42 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2 with SSH
+      - name: SSH to EC2 and Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # /app 디렉토리 존재 여부 확인 및 생성
             mkdir -p /app
             cd /app
 
-            # 처음 배포인 경우 repository clone
             if [ ! -d ".git" ]; then
               git clone https://github.com/${{ github.repository }} .
             else
               git pull origin main
             fi
 
-            # .env.dev 생성
-            cat <<EOF > .env.dev
-DB_ID=${{ secrets.DB_ID }}
-DB_PW=${{ secrets.DB_PW }}
-JWT_SECRETKEY=${{ secrets.JWT_SECRETKEY }}
-EOF
+            # 환경변수 파일 작성
+            echo "DB_ID=${{ secrets.DB_ID }}" > .env.dev
+            echo "DB_PW=${{ secrets.DB_PW }}" >> .env.dev
+            echo "JWT_SECRETKEY=${{ secrets.JWT_SECRETKEY }}" >> .env.dev
 
-            # Java가 없으면 설치 (선택사항)
+            # Java 설치 (필요 시)
             if ! type java > /dev/null 2>&1; then
               sudo apt update
               sudo apt install -y openjdk-17-jdk
             fi
 
-            # 빌드 및 애플리케이션 실행
             ./gradlew clean build -x test
 
-            # 기존 실행 중인 앱 종료
             pkill -f 'java -jar' || true
-
-            # 애플리케이션 실행
             nohup java -jar build/libs/*.jar --spring.profiles.active=dev > app.log 2>&1 &
