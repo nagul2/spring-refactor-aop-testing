@@ -21,6 +21,7 @@ jobs:
             cd ~/app
 
             if [ ! -d ".git" ]; then
+              rm -rf *  # 중요! 기존에 잘못된 파일 있을 경우 제거
               git clone https://github.com/${{ github.repository }} .
             else
               git pull origin main
@@ -37,6 +38,7 @@ jobs:
               sudo apt install -y openjdk-17-jdk
             fi
 
+            chmod +x ./gradlew
             ./gradlew clean build -x test
 
             pkill -f 'java -jar' || true
