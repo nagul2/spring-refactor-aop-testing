@@ -20,19 +20,17 @@ jobs:
             mkdir -p ~/app
             cd ~/app
 
-            if [ ! -d ".git" ]; then
-              rm -rf *  # 중요! 기존에 잘못된 파일 있을 경우 제거
-              git clone https://github.com/${{ github.repository }} .
-            else
-              git pull origin main
-            fi
+            # 완전히 비우기 (숨김파일 포함)
+            rm -rf .[^.]* * || true
+
+            git clone https://github.com/${{ github.repository }} .
 
             # 환경변수 파일 작성
             echo "DB_ID=${{ secrets.DB_ID }}" > .env.dev
             echo "DB_PW=${{ secrets.DB_PW }}" >> .env.dev
             echo "JWT_SECRETKEY=${{ secrets.JWT_SECRETKEY }}" >> .env.dev
 
-            # Java 설치
+            # Java 설치 (필요시)
             if ! type java > /dev/null 2>&1; then
               sudo apt update
               sudo apt install -y openjdk-17-jdk
